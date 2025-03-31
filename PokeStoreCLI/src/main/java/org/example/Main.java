@@ -11,7 +11,7 @@ public class Main {
         APIService as = new APIService();
         CardRepository cardRepo = new CardRepository(db);
 
-        Card card = as.getCardById("swsh3-136");
+        Card card = as.getCardById("swsh3-126");
         as.printCardInfo(card);
 
         cardRepo.saveCard(card);
