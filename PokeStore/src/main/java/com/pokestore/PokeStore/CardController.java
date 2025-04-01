@@ -45,6 +45,18 @@ public class CardController {
         return "login";
     }
 
+    @PostMapping("/login")
+    public String login(@RequestParam String usuario,
+                        @RequestParam String contrasena,
+                        Model model) {
+        if (userService.authenticate(usuario, contrasena)) {
+            return "redirect:/cards/list";
+        } else {
+            model.addAttribute("error", "Usuario o contraseña incorrectos");
+            return "login";
+        }
+    }
+
 
     @PostMapping("/eliminar/{id}")
     public String eliminarCarta(@PathVariable String id) {

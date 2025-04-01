@@ -6,4 +6,5 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends CassandraRepository<User, UUID> {
+    User findByUsuario(String usuario); // Spring Data Cassandra usará automáticamente el índice
 }
