@@ -35,6 +35,14 @@ public class CardController {
         return "cartas";
     }
 
+    @GetMapping("/login")
+    public String logging(Model model) {
+        Iterable<Card> cartas = cardRepository.findAll();
+        model.addAttribute("login", cartas);
+        return "login";
+    }
+
+
     @PostMapping("/eliminar/{id}")
     public String eliminarCarta(@PathVariable String id) {
         cardRepository.deleteById(id);
