@@ -15,6 +15,9 @@ public class CardController {
     @Autowired
     private CardRepository cardRepository;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/buscar")
     public String buscarYGuardarCarta(@RequestParam String cardId, Model model) {
         Card card = cardService.fetchCardFromAPI(cardId);
@@ -48,4 +51,22 @@ public class CardController {
         cardRepository.deleteById(id);
         return "redirect:/cards/list";
     }
+
+
+    @GetMapping("/register")
+    public String register(Model model) {
+        Iterable<Card> cartas = cardRepository.findAll();
+        model.addAttribute("register", cartas);
+        return "register";
+    }
+
+
+    @PostMapping("/adduser")
+    public String registerUser(@RequestParam String contrasena, @RequestParam String correo,
+                               @RequestParam String cuenta_bancaria, @RequestParam String direccion,
+                               @RequestParam String pais, @RequestParam String usuario) {
+        userService.registerUser(contrasena, correo, cuenta_bancaria, direccion, pais, usuario);
+        return "redirect:/cards/login"; // Redirige al login después del registro
+    }
+
 }
