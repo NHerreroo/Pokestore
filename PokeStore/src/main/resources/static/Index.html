@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Cartas</title>
+    <script>
+        function buscarCarta() {
+            let codigo = document.getElementById("codigo").value;
+            fetch("/cards/buscar/" + codigo, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id) {
+                        alert("Carta añadida: " + data.nombre);
+                    } else {
+                        alert("Carta no encontrada.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+<h1>Buscar Carta en TCGdex</h1>
+<input type="text" id="codigo" placeholder="Código de la carta">
+<button onclick="buscarCarta()">Buscar y Añadir</button>
+</body>
+</html>
