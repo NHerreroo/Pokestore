@@ -1,0 +1,528 @@
+/* Variables y configuración global */
+:root {
+    /* Colores principales */
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --secondary: #10b981;
+    --accent: #f59e0b;
+
+    /* Colores neutros */
+    --bg-dark: #111827;
+    --bg-card: #1f2937;
+    --bg-light: #374151;
+    --text-light: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border: #374151;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+
+    /* Bordes redondeados */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
+
+    /* Transiciones */
+    --transition: all 0.3s ease;
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-light);
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary);
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+}
+
+/* Contenedor principal */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fondo con formas animadas */
+.login-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: var(--bg-dark);
+    overflow: hidden;
+}
+
+.login-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.2;
+    animation: float 15s infinite ease-in-out;
+}
+
+.shape-1 {
+    width: 300px;
+    height: 300px;
+    background: var(--primary);
+    top: -100px;
+    left: -100px;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 400px;
+    height: 400px;
+    background: var(--secondary);
+    bottom: -150px;
+    right: -150px;
+    animation-delay: -5s;
+}
+
+.shape-3 {
+    width: 250px;
+    height: 250px;
+    background: var(--accent);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -10s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.05);
+    }
+}
+
+/* Tarjeta de login */
+.login-card {
+    width: 100%;
+    max-width: 450px;
+    margin: auto;
+    padding: 2.5rem;
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Encabezado del login */
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.logo-container h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.login-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* Pokeball animada */
+.pokeball {
+    width: 30px;
+    height: 30px;
+    position: relative;
+    animation: rotate 3s infinite linear;
+}
+
+.pokeball-top {
+    position: absolute;
+    width: 30px;
+    height: 15px;
+    background: var(--primary);
+    border-radius: 30px 30px 0 0;
+}
+
+.pokeball-middle {
+    position: absolute;
+    width: 30px;
+    height: 2px;
+    background: var(--border);
+    top: 14px;
+    z-index: 2;
+}
+
+.pokeball-bottom {
+    position: absolute;
+    width: 30px;
+    height: 15px;
+    background: white;
+    border-radius: 0 0 30px 30px;
+    top: 15px;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Formulario de login */
+.login-form {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group label i {
+    color: var(--primary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-light);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-light);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+
+.toggle-password:hover {
+    color: var(--text-light);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.remember-me input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+.forgot-password {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.forgot-password:hover {
+    color: var(--primary);
+}
+
+.login-button {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(to right, var(--primary), var(--primary-dark));
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.login-button:hover::before {
+    left: 100%;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Divisor */
+.login-divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border);
+}
+
+.login-divider span {
+    padding: 0 1rem;
+}
+
+/* Botones de login social */
+.social-login {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    background-color: var(--bg-light);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.social-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.social-button.google:hover {
+    background-color: #ea4335;
+    border-color: #ea4335;
+}
+
+.social-button.discord:hover {
+    background-color: #5865f2;
+    border-color: #5865f2;
+}
+
+/* Enlace de registro */
+.register-link {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.register-link a {
+    font-weight: 600;
+}
+
+/* Footer con cartas Pokémon */
+.login-footer {
+    margin-top: 3rem;
+    position: relative;
+    height: 150px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.pokemon-cards {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+}
+
+.pokemon-card {
+    position: absolute;
+    width: 100px;
+    height: 140px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+    transform: rotate(0deg) translateY(0);
+    animation: float-card 6s infinite ease-in-out;
+}
+
+.pokemon-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-1 {
+    left: 50%;
+    transform: translateX(-50%) rotate(-15deg);
+    z-index: 3;
+    animation-delay: 0s;
+}
+
+.card-2 {
+    left: calc(50% - 70px);
+    transform: translateX(-50%) rotate(-5deg);
+    z-index: 2;
+    animation-delay: -2s;
+}
+
+.card-3 {
+    left: calc(50% + 70px);
+    transform: translateX(-50%) rotate(15deg);
+    z-index: 1;
+    animation-delay: -4s;
+}
+
+@keyframes float-card {
+    0%, 100% {
+        transform: translateY(0) rotate(var(--rotate, 0deg));
+    }
+    50% {
+        transform: translateY(-10px) rotate(var(--rotate, 0deg));
+    }
+}
+
+.card-1 {
+    --rotate: -15deg;
+}
+
+.card-2 {
+    --rotate: -5deg;
+}
+
+.card-3 {
+    --rotate: 15deg;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .login-card {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .social-login {
+        flex-direction: column;
+    }
+
+    .pokemon-card {
+        width: 80px;
+        height: 112px;
+    }
+
+    .card-1 {
+        left: 50%;
+    }
+
+    .card-2 {
+        left: calc(50% - 50px);
+    }
+
+    .card-3 {
+        left: calc(50% + 50px);
+    }
+}

@@ -4,111 +4,228 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Colección de Cartas Pokémon</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Pokémon Competitive CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
   <link rel="stylesheet" th:href="@{/pokemon-style.css}">
 </head>
 <body>
-<div class="container mt-4 mb-5">
-  <header class="pokemon-header p-3">
-    <div class="d-flex justify-content-center align-items-center">
-      <svg class="header-icon me-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z" fill="#5bc0be"/>
-        <path d="M12 10.5C11.17 10.5 10.5 11.17 10.5 12C10.5 12.83 11.17 13.5 12 13.5C12.83 13.5 13.5 12.83 13.5 12C13.5 11.17 12.83 10.5 12 10.5Z" fill="#5bc0be"/>
-      </svg>
-      <h1 class="mb-0">Colección de Cartas Pokémon</h1>
-      <svg class="header-icon ms-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z" fill="#5bc0be"/>
-        <path d="M12 10.5C11.17 10.5 10.5 11.17 10.5 12C10.5 12.83 11.17 13.5 12 13.5C12.83 13.5 13.5 12.83 13.5 12C13.5 11.17 12.83 10.5 12 10.5Z" fill="#5bc0be"/>
-      </svg>
+<div class="app-container">
+  <div class="sidebar">
+    <div class="logo-container">
+      <div class="pokeball">
+        <div class="pokeball-top"></div>
+        <div class="pokeball-middle"></div>
+        <div class="pokeball-bottom"></div>
+      </div>
+      <h2>Pokémon TCG</h2>
     </div>
-  </header>
+    <nav class="sidebar-nav">
+      <ul>
+        <li class="active"><a href="#"><i class="fas fa-layer-group"></i> Colección</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Ajustes</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <p>Pokémon TCG Manager</p>
+      <small>v2.0</small>
+    </div>
+  </div>
 
-  <!-- Formulario de búsqueda -->
-  <div class="search-box mx-auto mb-4">
-    <div class="card">
-      <div class="card-body">
-        <form th:action="@{/cards/buscar}" method="post" class="d-flex">
-          <input type="text" class="form-control me-2" name="cardId"
-                 th:value="${cardId}" placeholder="Ingresa el ID de la carta" required>
-          <button class="btn btn-primary" type="submit">Buscar</button>
+  <main class="main-content">
+    <header class="main-header">
+      <div class="header-search">
+        <form th:action="@{/cards/buscar}" method="post" class="search-form">
+          <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" name="cardId"
+                   th:value="${cardId}" placeholder="Buscar por ID de carta" required>
+            <button class="search-button" type="submit">Buscar</button>
+          </div>
         </form>
-        <div th:if="${error}" class="alert alert-danger mt-2" th:text="${error}"></div>
+      </div>
+      <div class="header-actions">
+        <button class="action-button"><i class="fas fa-plus"></i> Añadir carta</button>
+        <div class="user-profile">
+          <div class="user-avatar">
+            <img src="https://api.dicebear.com/6.x/bottts/svg?seed=trainer" alt="Avatar">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="page-title">
+        <h1>Mi Colección</h1>
+        <p>Gestiona tu colección de cartas Pokémon</p>
+      </div>
+
+      <div class="alert-container" th:if="${error}">
+        <div class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <span th:text="${error}"></span>
+          <button class="alert-close"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+
+      <div class="cards-container">
+        <div class="cards-header">
+          <div class="cards-stats">
+            <div class="stat-item">
+              <span class="stat-value" th:text="${#lists.size(cartas)}">0</span>
+              <span class="stat-label">Cartas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">$<span th:text="${#aggregates.sum(cartas.![precio])}">0.00</span></span>
+              <span class="stat-label">Valor total</span>
+            </div>
+          </div>
+          <div class="cards-filters">
+            <div class="filter-dropdown">
+              <button class="filter-button">
+                <i class="fas fa-filter"></i> Filtrar
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div class="view-toggle">
+              <button class="view-button active" data-view="grid">
+                <i class="fas fa-th"></i>
+              </button>
+              <button class="view-button" data-view="list">
+                <i class="fas fa-list"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista de cuadrícula (predeterminada) -->
+        <div class="cards-grid" id="grid-view">
+          <div class="card-item" th:each="carta : ${cartas}">
+            <div class="card-preview">
+              <img th:src="${carta.foto}" alt="Imagen de la carta" class="card-image">
+              <div class="card-overlay">
+                <div class="card-actions">
+                  <button class="card-action-button view-btn"><i class="fas fa-eye"></i></button>
+                  <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post" class="delete-form">
+                    <button type="submit" class="card-action-button delete-btn"
+                            onclick="return confirm('¿Estás seguro de que quieres eliminar esta carta?')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div class="card-info">
+              <h3 class="card-name" th:text="${carta.nombre}">Nombre de la carta</h3>
+              <div class="card-meta">
+                <span class="card-type" th:text="${carta.tipo}">Tipo</span>
+                <span class="card-hp" th:text="${carta.vida + ' HP'}">HP</span>
+              </div>
+              <div class="card-footer">
+                <span class="card-rarity" th:text="${carta.rareza}">Rareza</span>
+                <span class="card-price" th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista de lista (alternativa) -->
+        <div class="cards-list" id="list-view" style="display: none;">
+          <table class="cards-table">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Imagen</th>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Vida</th>
+              <th>Rareza</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="carta : ${cartas}">
+              <td th:text="${carta.id}"></td>
+              <td>
+                <div class="table-card-img">
+                  <img th:src="${carta.foto}" alt="Imagen de la carta">
+                </div>
+              </td>
+              <td th:text="${carta.nombre}"></td>
+              <td><span class="table-type-badge" th:text="${carta.tipo}"></span></td>
+              <td>
+                <div class="table-hp">
+                  <div class="table-hp-bar">
+                    <div class="table-hp-fill"></div>
+                  </div>
+                  <span th:text="${carta.vida + ' HP'}"></span>
+                </div>
+              </td>
+              <td><span class="table-rarity-badge" th:text="${carta.rareza}"></span></td>
+              <td th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}"></td>
+              <td>
+                <div class="table-actions">
+                  <button class="table-action-btn view-btn"><i class="fas fa-eye"></i></button>
+                  <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post" class="delete-form">
+                    <button type="submit" class="table-action-btn delete-btn"
+                            onclick="return confirm('¿Estás seguro de que quieres eliminar esta carta?')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mensaje cuando no hay cartas -->
+        <div class="empty-state" th:if="${#lists.isEmpty(cartas)}">
+          <div class="empty-state-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No hay cartas en tu colección</h3>
+          <p>Utiliza el buscador para añadir nuevas cartas a tu colección.</p>
+          <button class="empty-state-button">Explorar cartas</button>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Tabla de cartas -->
-  <div class="card mb-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table">
-          <thead class="table-header">
-          <tr>
-            <th>ID</th>
-            <th>Imagen</th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Precio</th>
-            <th>Vida</th>
-            <th>Rareza</th>
-            <th class="text-center">Acciones</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="carta : ${cartas}">
-            <td th:text="${carta.id}"></td>
-            <td>
-              <div class="card-img-container">
-                <img th:src="${carta.foto}" alt="Imagen de la carta" class="card-img">
-              </div>
-            </td>
-            <td>
-              <span th:text="${carta.nombre}" class="card-name"></span>
-            </td>
-            <td>
-              <span th:text="${carta.tipo}" class="type-badge"></span>
-            </td>
-            <td th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}"></td>
-            <td>
-              <div class="hp-bar">
-                <div class="hp-progress" style="width: 100%;"></div>
-              </div>
-              <div class="hp-text" th:text="${carta.vida + ' HP'}"></div>
-            </td>
-            <td>
-              <span th:text="${carta.rareza}" class="rarity-badge"></span>
-            </td>
-            <td class="text-center">
-              <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post">
-                <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('¿Estás seguro de que quieres eliminar esta carta?')">
-                  Eliminar
-                </button>
-              </form>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mensaje cuando no hay cartas -->
-      <div th:if="${#lists.isEmpty(cartas)}" class="no-cards-message">
-        <p>No hay cartas en tu colección. Utiliza el buscador para añadir nuevas cartas.</p>
-        <button class="btn btn-primary">Explorar cartas</button>
-      </div>
-    </div>
-  </div>
-
-  <footer class="footer text-center p-3">
-    <p class="mb-0">Pokémon TCG Manager</p>
-  </footer>
+  </main>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Script para cambiar entre vistas -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const gridViewBtn = document.querySelector('[data-view="grid"]');
+    const listViewBtn = document.querySelector('[data-view="list"]');
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+
+    gridViewBtn.addEventListener('click', function() {
+      gridView.style.display = 'grid';
+      listView.style.display = 'none';
+      gridViewBtn.classList.add('active');
+      listViewBtn.classList.remove('active');
+    });
+
+    listViewBtn.addEventListener('click', function() {
+      gridView.style.display = 'none';
+      listView.style.display = 'block';
+      listViewBtn.classList.add('active');
+      gridViewBtn.classList.remove('active');
+    });
+
+    // Cerrar alertas
+    const alertCloseBtn = document.querySelector('.alert-close');
+    if (alertCloseBtn) {
+      alertCloseBtn.addEventListener('click', function() {
+        document.querySelector('.alert').style.display = 'none';
+      });
+    }
+  });
+</script>
 </body>
 </html>
