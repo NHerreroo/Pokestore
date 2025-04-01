@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Colección de Cartas Pokémon</title>
+  <title>Pokémon Card Collection</title>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
@@ -24,8 +24,8 @@
     </div>
     <nav class="sidebar-nav">
       <ul>
-        <li class="active"><a href="#"><i class="fas fa-layer-group"></i> Colección</a></li>
-        <li><a href="#"><i class="fas fa-cog"></i> Ajustes</a></li>
+        <li class="active"><a href="#"><i class="fas fa-layer-group"></i> Collection</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
       </ul>
     </nav>
     <div class="sidebar-footer">
@@ -41,8 +41,8 @@
           <div class="search-input-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" name="cardId"
-                   th:value="${cardId}" placeholder="Buscar por ID de carta" required>
-            <button class="search-button" type="submit">Añadir</button>
+                   th:value="${cardId}" placeholder="Search by card ID" required>
+            <button class="search-button" type="submit">Add</button>
           </div>
         </form>
       </div>
@@ -57,8 +57,8 @@
 
     <div class="content-wrapper">
       <div class="page-title">
-        <h1>Mi Colección</h1>
-        <p>Gestiona tu colección de cartas Pokémon</p>
+        <h1>My Collection</h1>
+        <p>Manage your Pokémon card collection</p>
       </div>
 
       <div class="alert-container" th:if="${error}">
@@ -74,17 +74,17 @@
           <div class="cards-stats">
             <div class="stat-item">
               <span class="stat-value" th:text="${#lists.size(cartas)}">0</span>
-              <span class="stat-label">Cartas</span>
+              <span class="stat-label">Cards</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">$<span th:text="${#aggregates.sum(cartas.![precio])}">0.00</span></span>
-              <span class="stat-label">Valor total</span>
+              <span class="stat-label">Total Value</span>
             </div>
           </div>
           <div class="cards-filters">
             <div class="filter-dropdown">
               <button class="filter-button">
-                <i class="fas fa-filter"></i> Filtrar
+                <i class="fas fa-filter"></i> Filter
                 <i class="fas fa-chevron-down"></i>
               </button>
             </div>
@@ -99,17 +99,17 @@
           </div>
         </div>
 
-        <!-- Vista de cuadrícula (predeterminada) -->
+        <!-- Grid view (default) -->
         <div class="cards-grid" id="grid-view">
           <div class="card-item" th:each="carta : ${cartas}">
             <div class="card-preview">
-              <img th:src="${carta.foto}" alt="Imagen de la carta" class="card-image">
+              <img th:src="${carta.foto}" alt="Card Image" class="card-image">
               <div class="card-overlay">
                 <div class="card-actions">
                   <button class="card-action-button view-btn"><i class="fas fa-eye"></i></button>
                   <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post" class="delete-form">
                     <button type="submit" class="card-action-button delete-btn"
-                            onclick="return confirm('¿Estás seguro de que quieres eliminar esta carta?')">
+                            onclick="return confirm('Are you sure you want to delete this card?')">
                       <i class="fas fa-trash"></i>
                     </button>
                   </form>
@@ -117,32 +117,32 @@
               </div>
             </div>
             <div class="card-info">
-              <h3 class="card-name" th:text="${carta.nombre}">Nombre de la carta</h3>
+              <h3 class="card-name" th:text="${carta.nombre}">Card Name</h3>
               <div class="card-meta">
-                <span class="card-type" th:text="${carta.tipo}">Tipo</span>
+                <span class="card-type" th:text="${carta.tipo}">Type</span>
                 <span class="card-hp" th:text="${carta.vida + ' HP'}">HP</span>
               </div>
               <div class="card-footer">
-                <span class="card-rarity" th:text="${carta.rareza}">Rareza</span>
+                <span class="card-rarity" th:text="${carta.rareza}">Rarity</span>
                 <span class="card-price" th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}">$0.00</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Vista de lista (alternativa) -->
+        <!-- List view (alternative) -->
         <div class="cards-list" id="list-view" style="display: none;">
           <table class="cards-table">
             <thead>
             <tr>
               <th>ID</th>
-              <th>Imagen</th>
-              <th>Nombre</th>
-              <th>Tipo</th>
-              <th>Vida</th>
-              <th>Rareza</th>
-              <th>Precio</th>
-              <th>Acciones</th>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>HP</th>
+              <th>Rarity</th>
+              <th>Price</th>
+              <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -150,7 +150,7 @@
               <td th:text="${carta.id}"></td>
               <td>
                 <div class="table-card-img">
-                  <img th:src="${carta.foto}" alt="Imagen de la carta">
+                  <img th:src="${carta.foto}" alt="Card Image">
                 </div>
               </td>
               <td th:text="${carta.nombre}"></td>
@@ -170,7 +170,7 @@
                   <button class="table-action-btn view-btn"><i class="fas fa-eye"></i></button>
                   <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post" class="delete-form">
                     <button type="submit" class="table-action-btn delete-btn"
-                            onclick="return confirm('¿Estás seguro de que quieres eliminar esta carta?')">
+                            onclick="return confirm('Are you sure you want to delete this card?')">
                       <i class="fas fa-trash"></i>
                     </button>
                   </form>
@@ -181,21 +181,21 @@
           </table>
         </div>
 
-        <!-- Mensaje cuando no hay cartas -->
+        <!-- Message when there are no cards -->
         <div class="empty-state" th:if="${#lists.isEmpty(cartas)}">
           <div class="empty-state-icon">
             <i class="fas fa-search"></i>
           </div>
-          <h3>No hay cartas en tu colección</h3>
-          <p>Utiliza el buscador para añadir nuevas cartas a tu colección.</p>
-          <button class="empty-state-button">Explorar cartas</button>
+          <h3>There are no cards in your collection</h3>
+          <p>Use the search to add new cards to your collection.</p>
+          <button class="empty-state-button">Browse cards</button>
         </div>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Script para cambiar entre vistas -->
+<!-- Script to switch between views -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const gridViewBtn = document.querySelector('[data-view="grid"]');
@@ -217,7 +217,7 @@
       gridViewBtn.classList.remove('active');
     });
 
-    // Cerrar alertas
+    // Close alerts
     const alertCloseBtn = document.querySelector('.alert-close');
     if (alertCloseBtn) {
       alertCloseBtn.addEventListener('click', function() {
