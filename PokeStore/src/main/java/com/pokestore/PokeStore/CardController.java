@@ -6,9 +6,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/cards")
 public class CardController {
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private CardService cardService;
@@ -105,10 +110,13 @@ public class CardController {
         if (usuario != null) {
             User user = userService.findByUsername(usuario);
             if (user != null) {
-                model.addAttribute("userEmail", user.getCorreo());
+                String correo = user.getCorreo();
+                model.addAttribute("user_email", correo);
+                // Recupera los pedidos del usuario
+                List<Order> orders = orderService.getOrdersByUser_email(correo);
+                model.addAttribute("pedidos", orders);
             }
         }
-        // Aquí podrías agregar la lista de pedidos si la requieres
         return "orders";
     }
 }

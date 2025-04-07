@@ -6,12 +6,12 @@
 </head>
 <body>
 <h1>Pedidos</h1>
-<p>Usuario logueado: <span th:text="${userEmail}">usuario@ejemplo.com</span></p>
+<p>Usuario logueado: <span th:text="${user_email}">usuario@ejemplo.com</span></p>
 <table>
   <thead>
   <tr>
     <th>ID</th>
-    <th>Usuario</th>
+    <th>Correo</th>
     <th>Fecha</th>
     <th>Total</th>
   </tr>
@@ -19,13 +19,12 @@
   <tbody>
   <tr th:each="pedido : ${pedidos}">
     <td th:text="${pedido.id}"></td>
-    <td th:text="${pedido.usuario}"></td>
-    <td th:text="${pedido.fecha}"></td>
-    <td th:text="${pedido.total}"></td>
+    <td th:text="${pedido.user_email}"></td>
+    <td th:text="${#dates.format(pedido.created_at, 'dd/MM/yyyy HH:mm')}"></td>
+    <td th:text="${pedido.total_price}"></td>
   </tr>
   </tbody>
 </table>
-
 <!-- Botón para volver a la página de inicio -->
 <a href="/cards/list">Volver a la página de inicio</a>
 </body>
