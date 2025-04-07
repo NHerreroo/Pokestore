@@ -517,25 +517,34 @@
 
         // Función para cargar los pedidos mediante AJAX
         function loadOrders() {
-            fetch('/cards/usuario-actual')
-                .then(response => response.text())
-                .then(userEmail => {
-                    if (!userEmail) {
-                        showNotification('Debes iniciar sesión para ver tus pedidos', 'error');
-                        return;
+            // Hacer una solicitud AJAX para obtener los pedidos del endpoint /cards/orders
+            fetch('/cards/orders', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            showNotification('Debes iniciar sesión para ver tus pedidos', 'error');
+                            return null;
+                        }
+                        throw new Error('Error al cargar los pedidos');
                     }
-
-                    // Hacer una solicitud AJAX para obtener los pedidos
-                    return fetch('/api/orders/user?email=' + encodeURIComponent(userEmail))
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Error al cargar los pedidos');
-                            }
-                            return response.json();
-                        });
+                    return response.text();
                 })
-                .then(orders => {
-                    if (!orders || orders.length === 0) {
+                .then(html => {
+                    if (!html) return;
+
+                    // Crear un parser DOM para extraer los datos de la respuesta HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Extraer los pedidos de la tabla HTML
+                    const rows = doc.querySelectorAll('table tbody tr');
+
+                    if (rows.length === 0) {
                         document.getElementById('orders-table').style.display = 'none';
                         document.getElementById('no-orders-message').style.display = 'block';
                         document.getElementById('orders-count').textContent = '0';
@@ -548,55 +557,64 @@
                     document.getElementById('no-orders-message').style.display = 'none';
 
                     // Actualizar estadísticas
-                    document.getElementById('orders-count').textContent = orders.length;
-
-                    // Calcular el total gastado
-                    const totalSpent = orders.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
-                    document.getElementById('orders-total').textContent = '$' + totalSpent.toFixed(2);
+                    document.getElementById('orders-count').textContent = rows.length;
 
                     // Limpiar la tabla
                     const tableBody = document.getElementById('orders-table-body');
                     tableBody.innerHTML = '';
 
+                    // Variable para calcular el total gastado
+                    let totalSpent = 0;
+
                     // Añadir cada pedido a la tabla
-                    orders.forEach(order => {
-                        const row = document.createElement('tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 4) {
+                            const id = cells[0].textContent.trim();
+                            const email = cells[1].textContent.trim();
+                            const date = cells[2].textContent.trim();
+                            const total = parseFloat(cells[3].textContent.trim().replace('$', ''));
 
-                        // Formatear la fecha
-                        const date = new Date(order.created_at);
-                        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                            totalSpent += isNaN(total) ? 0 : total;
 
-                        row.innerHTML = `
-                            <td>${order.id}</td>
-                            <td>${formattedDate}</td>
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                            <td>${id}</td>
+                            <td>${date}</td>
                             <td>
-                                <span>${order.items.length} items</span>
-                                <button class="view-items-btn" data-items="${order.items.join(', ')}">
+                                <span>Items</span>
+                                <button class="view-items-btn" data-id="${id}">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>
-                            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
+                            <td>$${total.toFixed(2)}</td>
                             <td><span class="status-badge status-completed">Completed</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="table-action-btn view-btn" data-id="${order.id}">
+                                    <button class="table-action-btn view-btn" data-id="${id}">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="table-action-btn download-btn" data-id="${order.id}">
+                                    <button class="table-action-btn download-btn" data-id="${id}">
                                         <i class="fas fa-download"></i>
                                     </button>
                                 </div>
                             </td>
                         `;
 
-                        tableBody.appendChild(row);
+                            tableBody.appendChild(newRow);
+                        }
                     });
+
+                    // Actualizar el total gastado
+                    document.getElementById('orders-total').textContent = '$' + totalSpent.toFixed(2);
 
                     // Añadir event listeners a los botones de ver items
                     document.querySelectorAll('.view-items-btn').forEach(btn => {
                         btn.addEventListener('click', function() {
-                            const items = this.getAttribute('data-items');
-                            showItemsModal(items);
+                            const id = this.getAttribute('data-id');
+                            // Aquí podrías hacer otra solicitud para obtener los detalles del pedido
+                            // Por ahora, mostraremos un mensaje genérico
+                            showItemsModal("Items del pedido " + id);
                         });
                     });
                 })
@@ -611,18 +629,24 @@
             // Limpiar el contenedor
             orderItems.innerHTML = '';
 
-            // Convertir la cadena de items en una lista
-            const items = itemsString.split(', ');
-
             // Crear una lista HTML con los items
             const itemsList = document.createElement('ul');
             itemsList.className = 'items-list';
 
-            items.forEach(item => {
+            // Si itemsString es una cadena que contiene items separados por comas
+            if (itemsString.includes(',')) {
+                const items = itemsString.split(', ');
+                items.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = item;
+                    itemsList.appendChild(listItem);
+                });
+            } else {
+                // Si es solo un mensaje
                 const listItem = document.createElement('li');
-                listItem.textContent = item;
+                listItem.textContent = itemsString;
                 itemsList.appendChild(listItem);
-            });
+            }
 
             orderItems.appendChild(itemsList);
 
@@ -1057,40 +1081,6 @@
                 document.querySelector('.alert').style.display = 'none';
             });
         }
-
-        // Crear endpoint para obtener pedidos por usuario
-        // Esto es solo para simular la respuesta del servidor
-        // En un entorno real, este endpoint debería estar implementado en el backend
-        const originalFetch = window.fetch;
-        window.fetch = function(url, options) {
-            if (url.startsWith('/api/orders/user')) {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        // Simular respuesta del servidor
-                        resolve({
-                            ok: true,
-                            json: () => Promise.resolve([
-                                {
-                                    id: "550e8400-e29b-41d4-a716-446655440000",
-                                    created_at: new Date().toISOString(),
-                                    items: ["Charizard", "Pikachu", "Blastoise"],
-                                    total_price: "150.00",
-                                    user_email: "usuario@ejemplo.com"
-                                },
-                                {
-                                    id: "550e8400-e29b-41d4-a716-446655440001",
-                                    created_at: new Date(Date.now() - 86400000).toISOString(), // Ayer
-                                    items: ["Venusaur", "Mewtwo"],
-                                    total_price: "120.50",
-                                    user_email: "usuario@ejemplo.com"
-                                }
-                            ])
-                        });
-                    }, 500);
-                });
-            }
-            return originalFetch.apply(this, arguments);
-        };
 
         // Mostrar la vista de tienda por defecto
         showStoreView();
