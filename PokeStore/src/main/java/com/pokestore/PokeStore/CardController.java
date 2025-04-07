@@ -1,5 +1,6 @@
 package com.pokestore.PokeStore;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,14 +49,17 @@ public class CardController {
     @PostMapping("/login")
     public String login(@RequestParam String usuario,
                         @RequestParam String contrasena,
-                        Model model) {
+                        Model model,
+                        HttpSession session) {
         if (userService.authenticate(usuario, contrasena)) {
+            session.setAttribute("usuarioLogueado", usuario);
             return "redirect:/cards/list";
         } else {
             model.addAttribute("error", "Usuario o contraseña incorrectos");
             return "login";
         }
     }
+
 
 
     @PostMapping("/eliminar/{id}")
@@ -79,6 +83,17 @@ public class CardController {
                                @RequestParam String pais, @RequestParam String usuario) {
         userService.registerUser(contrasena, correo, cuenta_bancaria, direccion, pais, usuario);
         return "redirect:/cards/login"; // Redirige al login después del registro
+    }
+
+
+    @GetMapping("/usuario-actual")
+    public String getUsuarioActual(HttpSession session) {
+        String usuario = (String) session.getAttribute("usuarioLogueado");
+        if (usuario != null) {
+            return "Usuario actual: " + usuario;
+        } else {
+            return "No hay usuario logueado";
+        }
     }
 
 }
