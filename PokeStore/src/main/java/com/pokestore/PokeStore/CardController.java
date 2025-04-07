@@ -19,6 +19,7 @@ public class CardController {
     @Autowired
     private UserService userService;
 
+
     @PostMapping("/buscar")
     public String buscarYGuardarCarta(@RequestParam String cardId, Model model) {
         Card card = cardService.fetchCardFromAPI(cardId);
@@ -95,5 +96,7 @@ public class CardController {
             return "No hay usuario logueado";
         }
     }
+
+
 
 }
