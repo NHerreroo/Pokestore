@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PEDIDOS</title>
+</head>
+<body>
+<h1>Pedidos</h1>
+<p>Usuario logueado: <span th:text="${userEmail}">usuario@ejemplo.com</span></p>
+<table>
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Usuario</th>
+    <th>Fecha</th>
+    <th>Total</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="pedido : ${pedidos}">
+    <td th:text="${pedido.id}"></td>
+    <td th:text="${pedido.usuario}"></td>
+    <td th:text="${pedido.fecha}"></td>
+    <td th:text="${pedido.total}"></td>
+  </tr>
+  </tbody>
+</table>
+
+<!-- Botón para volver a la página de inicio -->
+<a href="/cards/list">Volver a la página de inicio</a>
+</body>
+</html>

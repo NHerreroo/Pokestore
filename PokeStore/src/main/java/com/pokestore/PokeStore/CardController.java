@@ -99,6 +99,16 @@ public class CardController {
         return "";
     }
 
-
-
+    @GetMapping("/orders")
+    public String orders(Model model, HttpSession session) {
+        String usuario = (String) session.getAttribute("usuarioLogueado");
+        if (usuario != null) {
+            User user = userService.findByUsername(usuario);
+            if (user != null) {
+                model.addAttribute("userEmail", user.getCorreo());
+            }
+        }
+        // Aquí podrías agregar la lista de pedidos si la requieres
+        return "orders";
+    }
 }
