@@ -11,6 +11,76 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/pokemon-style.css}">
+    <style>
+        /* Estilos adicionales para la página de pedidos */
+        .orders-container {
+            display: none;
+        }
+
+        .orders-container.active {
+            display: block;
+        }
+
+        .store-container.hidden {
+            display: none;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .orders-table th, .orders-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .orders-table th {
+            background-color: var(--bg-light);
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .view-items-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .view-items-btn:hover {
+            color: var(--primary-dark);
+        }
+
+        .items-list {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .items-list li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+    </style>
 </head>
 <body>
 <div class="app-container">
@@ -25,8 +95,8 @@
         </div>
         <nav class="sidebar-nav">
             <ul>
-                <li class="active"><a href="#"><i class="fas fa-layer-group"></i> Store</a></li>
-                <li><a href="/cards/orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                <li class="active" id="store-nav"><a href="#" id="store-link"><i class="fas fa-layer-group"></i> Store</a></li>
+                <li id="orders-nav"><a href="#" id="orders-link"><i class="fas fa-shopping-cart"></i> Orders</a></li>
             </ul>
         </nav>
         <div class="sidebar-footer">
@@ -38,7 +108,7 @@
     <main class="main-content">
         <header class="main-header">
             <div class="header-search">
-                <form th:action="@{/cards/buscar}" method="post" class="search-form">
+                <form th:action="@{/cards/buscar}" method="post" class="search-form" id="search-form">
                     <div class="search-input-container">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" class="search-input" name="cardId"
@@ -46,6 +116,10 @@
                         <button class="search-button" type="submit">Add</button>
                     </div>
                 </form>
+                <div class="search-input-container" id="orders-search-container" style="display: none;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="orderSearch" placeholder="Search orders...">
+                </div>
             </div>
             <div class="header-actions">
                 <!-- Botón de carrito mejorado -->
@@ -62,161 +136,224 @@
         </header>
 
         <div class="content-wrapper">
-            <div class="page-title">
-                <h1>Store</h1>
-                <p>Search for a card to add to your collection</p>
-            </div>
-
-            <div class="alert-container" th:if="${error}">
-                <div class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span th:text="${error}"></span>
-                    <button class="alert-close"><i class="fas fa-times"></i></button>
+            <!-- Contenedor de la tienda (vista por defecto) -->
+            <div class="store-container" id="store-container">
+                <div class="page-title">
+                    <h1>Store</h1>
+                    <p>Search for a card to add to your collection</p>
                 </div>
-            </div>
 
-            <!-- Contenedor para notificaciones -->
-            <div id="notification-container"></div>
-
-            <div class="cards-container">
-                <div class="cards-header">
-                    <div class="cards-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" th:text="${#lists.size(cartas)}">0</span>
-                            <span class="stat-label">Cards</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">$<span
-                                    th:text="${#aggregates.sum(cartas.![precio])}">0.00</span></span>
-                            <span class="stat-label">Total Value</span>
-                        </div>
-                    </div>
-                    <div class="cards-filters">
-                        <div class="filter-dropdown">
-                            <button class="filter-button">
-                                <i class="fas fa-filter"></i> Filter
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </div>
-                        <div class="view-toggle">
-                            <button class="view-button active" data-view="grid">
-                                <i class="fas fa-th"></i>
-                            </button>
-                            <button class="view-button" data-view="list">
-                                <i class="fas fa-list"></i>
-                            </button>
-                        </div>
+                <div class="alert-container" th:if="${error}">
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span th:text="${error}"></span>
+                        <button class="alert-close"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
-                <!-- Grid view (default) -->
-                <div class="cards-grid" id="grid-view">
-                    <div class="card-item" th:each="carta : ${cartas}">
-                        <div class="card-preview">
-                            <img th:src="${carta.foto}" alt="Card Image" class="card-image">
-                            <div class="card-overlay">
-                                <div class="card-actions">
-                                    <button class="card-action-button view-btn"><i class="fas fa-eye"></i></button>
-                                    <!-- Botón de añadir al carrito -->
-                                    <button class="card-action-button cart-btn"
-                                            th:data-id="${carta.id}"
-                                            th:data-name="${carta.nombre}"
-                                            th:data-price="${carta.precio}"
-                                            th:data-image="${carta.foto}">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </button>
-                                    <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post"
-                                          class="delete-form">
-                                        <button type="submit" class="card-action-button delete-btn"
-                                                onclick="return confirm('Are you sure you want to delete this card?')">
-                                            <i class="fas fa-trash"></i>
+                <!-- Contenedor para notificaciones -->
+                <div id="notification-container"></div>
+
+                <div class="cards-container">
+                    <div class="cards-header">
+                        <div class="cards-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" th:text="${#lists.size(cartas)}">0</span>
+                                <span class="stat-label">Cards</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">$<span
+                                        th:text="${#aggregates.sum(cartas.![precio])}">0.00</span></span>
+                                <span class="stat-label">Total Value</span>
+                            </div>
+                        </div>
+                        <div class="cards-filters">
+                            <div class="filter-dropdown">
+                                <button class="filter-button">
+                                    <i class="fas fa-filter"></i> Filter
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="view-toggle">
+                                <button class="view-button active" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-button" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid view (default) -->
+                    <div class="cards-grid" id="grid-view">
+                        <div class="card-item" th:each="carta : ${cartas}">
+                            <div class="card-preview">
+                                <img th:src="${carta.foto}" alt="Card Image" class="card-image">
+                                <div class="card-overlay">
+                                    <div class="card-actions">
+                                        <button class="card-action-button view-btn"><i class="fas fa-eye"></i></button>
+                                        <!-- Botón de añadir al carrito -->
+                                        <button class="card-action-button cart-btn"
+                                                th:data-id="${carta.id}"
+                                                th:data-name="${carta.nombre}"
+                                                th:data-price="${carta.precio}"
+                                                th:data-image="${carta.foto}">
+                                            <i class="fas fa-cart-plus"></i>
                                         </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-info">
-                            <h3 class="card-name" th:text="${carta.nombre}">Card Name</h3>
-                            <div class="card-meta">
-                                <span class="card-type" th:text="${carta.tipo}">Type</span>
-                                <span class="card-hp" th:text="${carta.vida + ' HP'}">HP</span>
-                            </div>
-                            <div class="card-footer">
-                                <span class="card-rarity" th:text="${carta.rareza}">Rarity</span>
-                                <span class="card-price" th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}">$0.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- List view (alternative) -->
-                <div class="cards-list" id="list-view" style="display: none;">
-                    <table class="cards-table">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Image</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>HP</th>
-                            <th>Rarity</th>
-                            <th>Price</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="carta : ${cartas}">
-                            <td th:text="${carta.id}"></td>
-                            <td>
-                                <div class="table-card-img">
-                                    <img th:src="${carta.foto}" alt="Card Image">
-                                </div>
-                            </td>
-                            <td th:text="${carta.nombre}"></td>
-                            <td><span class="table-type-badge" th:text="${carta.tipo}"></span></td>
-                            <td>
-                                <div class="table-hp">
-                                    <div class="table-hp-bar">
-                                        <div class="table-hp-fill"></div>
+                                        <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post"
+                                              class="delete-form">
+                                            <button type="submit" class="card-action-button delete-btn"
+                                                    onclick="return confirm('Are you sure you want to delete this card?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
-                                    <span th:text="${carta.vida + ' HP'}"></span>
                                 </div>
-                            </td>
-                            <td><span class="table-rarity-badge" th:text="${carta.rareza}"></span></td>
-                            <td th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}"></td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="table-action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                    <!-- Botón de añadir al carrito en vista de lista -->
-                                    <button class="table-action-btn cart-btn"
-                                            th:data-id="${carta.id}"
-                                            th:data-name="${carta.nombre}"
-                                            th:data-price="${carta.precio}"
-                                            th:data-image="${carta.foto}">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </button>
-                                    <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post"
-                                          class="delete-form">
-                                        <button type="submit" class="table-action-btn delete-btn"
-                                                onclick="return confirm('Are you sure you want to delete this card?')">
-                                            <i class="fas fa-trash"></i>
+                            </div>
+                            <div class="card-info">
+                                <h3 class="card-name" th:text="${carta.nombre}">Card Name</h3>
+                                <div class="card-meta">
+                                    <span class="card-type" th:text="${carta.tipo}">Type</span>
+                                    <span class="card-hp" th:text="${carta.vida + ' HP'}">HP</span>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="card-rarity" th:text="${carta.rareza}">Rarity</span>
+                                    <span class="card-price" th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List view (alternative) -->
+                    <div class="cards-list" id="list-view" style="display: none;">
+                        <table class="cards-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>HP</th>
+                                <th>Rarity</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="carta : ${cartas}">
+                                <td th:text="${carta.id}"></td>
+                                <td>
+                                    <div class="table-card-img">
+                                        <img th:src="${carta.foto}" alt="Card Image">
+                                    </div>
+                                </td>
+                                <td th:text="${carta.nombre}"></td>
+                                <td><span class="table-type-badge" th:text="${carta.tipo}"></span></td>
+                                <td>
+                                    <div class="table-hp">
+                                        <div class="table-hp-bar">
+                                            <div class="table-hp-fill"></div>
+                                        </div>
+                                        <span th:text="${carta.vida + ' HP'}"></span>
+                                    </div>
+                                </td>
+                                <td><span class="table-rarity-badge" th:text="${carta.rareza}"></span></td>
+                                <td th:text="${'$' + #numbers.formatDecimal(carta.precio, 1, 2)}"></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="table-action-btn view-btn"><i class="fas fa-eye"></i></button>
+                                        <!-- Botón de añadir al carrito en vista de lista -->
+                                        <button class="table-action-btn cart-btn"
+                                                th:data-id="${carta.id}"
+                                                th:data-name="${carta.nombre}"
+                                                th:data-price="${carta.precio}"
+                                                th:data-image="${carta.foto}">
+                                            <i class="fas fa-cart-plus"></i>
                                         </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                        <form th:action="@{/cards/eliminar/{id}(id=${carta.id})}" method="post"
+                                              class="delete-form">
+                                            <button type="submit" class="table-action-btn delete-btn"
+                                                    onclick="return confirm('Are you sure you want to delete this card?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Message when there are no cards -->
+                    <div class="empty-state" th:if="${#lists.isEmpty(cartas)}">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3>There are no cards in your collection</h3>
+                        <p>Use the search to add new cards to your collection.</p>
+                        <button class="empty-state-button">Browse cards</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor de pedidos (oculto por defecto) -->
+            <div class="orders-container" id="orders-container">
+                <div class="page-title">
+                    <h1>Your Orders</h1>
+                    <p>View and manage your purchase history</p>
                 </div>
 
-                <!-- Message when there are no cards -->
-                <div class="empty-state" th:if="${#lists.isEmpty(cartas)}">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-search"></i>
+                <div class="cards-container">
+                    <div class="cards-header">
+                        <div class="cards-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="orders-count">0</span>
+                                <span class="stat-label">Orders</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="orders-total">$0.00</span>
+                                <span class="stat-label">Total Spent</span>
+                            </div>
+                        </div>
+                        <div class="cards-filters">
+                            <div class="filter-dropdown">
+                                <button class="filter-button">
+                                    <i class="fas fa-filter"></i> Filter
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <h3>There are no cards in your collection</h3>
-                    <p>Use the search to add new cards to your collection.</p>
-                    <button class="empty-state-button">Browse cards</button>
+
+                    <!-- Orders list view -->
+                    <div class="cards-list">
+                        <table class="orders-table" id="orders-table">
+                            <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                            <!-- Los pedidos se cargarán dinámicamente aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Message when there are no orders -->
+                    <div class="empty-state" id="no-orders-message" style="display: none;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3>You haven't placed any orders yet</h3>
+                        <p>Go to the store and add some cards to your cart to place an order.</p>
+                        <button class="empty-state-button" id="go-to-store-btn">Go to Store</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -243,6 +380,24 @@
                         <span id="cart-total-price">$0.00</span>
                     </div>
                     <button id="checkout-btn" class="cart-checkout-btn">Checkout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver detalles de items de pedido -->
+        <div class="cart-modal" id="items-modal">
+            <div class="cart-modal-content">
+                <div class="cart-modal-header">
+                    <h3>Order Items</h3>
+                    <button class="items-modal-close"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="cart-modal-body">
+                    <div class="order-items" id="order-items">
+                        <!-- Los items del pedido se añadirán aquí dinámicamente -->
+                    </div>
+                </div>
+                <div class="cart-modal-footer">
+                    <button class="cart-checkout-btn close-modal-btn">Close</button>
                 </div>
             </div>
         </div>
@@ -277,6 +432,23 @@
 <!-- Script para la funcionalidad del carrito y vistas -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Variables para la navegación
+        const storeLink = document.getElementById('store-link');
+        const ordersLink = document.getElementById('orders-link');
+        const storeNav = document.getElementById('store-nav');
+        const ordersNav = document.getElementById('orders-nav');
+        const storeContainer = document.getElementById('store-container');
+        const ordersContainer = document.getElementById('orders-container');
+        const searchForm = document.getElementById('search-form');
+        const ordersSearchContainer = document.getElementById('orders-search-container');
+        const goToStoreBtn = document.getElementById('go-to-store-btn');
+
+        // Variables para el modal de items de pedido
+        const itemsModal = document.getElementById('items-modal');
+        const itemsModalClose = document.querySelector('.items-modal-close');
+        const closeModalBtn = document.querySelector('.close-modal-btn');
+        const orderItems = document.getElementById('order-items');
+
         // Variables para el carrito
         const cartButton = document.querySelector('.cart-button');
         const cartModal = document.getElementById('cart-modal');
@@ -298,6 +470,197 @@
 
         // Carrito de compras
         let cart = [];
+
+        // Función para mostrar la vista de tienda
+        function showStoreView() {
+            storeContainer.classList.remove('hidden');
+            ordersContainer.classList.remove('active');
+            storeNav.classList.add('active');
+            ordersNav.classList.remove('active');
+            searchForm.style.display = 'block';
+            ordersSearchContainer.style.display = 'none';
+
+            // Actualizar título de la página
+            document.title = 'PokéStore - Store';
+        }
+
+        // Función para mostrar la vista de pedidos
+        function showOrdersView() {
+            storeContainer.classList.add('hidden');
+            ordersContainer.classList.add('active');
+            storeNav.classList.remove('active');
+            ordersNav.classList.add('active');
+            searchForm.style.display = 'none';
+            ordersSearchContainer.style.display = 'block';
+
+            // Actualizar título de la página
+            document.title = 'PokéStore - Orders';
+
+            // Cargar los pedidos
+            loadOrders();
+        }
+
+        // Event listeners para la navegación
+        storeLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showStoreView();
+        });
+
+        ordersLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showOrdersView();
+        });
+
+        goToStoreBtn.addEventListener('click', function() {
+            showStoreView();
+        });
+
+        // Función para cargar los pedidos mediante AJAX
+        function loadOrders() {
+            fetch('/cards/usuario-actual')
+                .then(response => response.text())
+                .then(userEmail => {
+                    if (!userEmail) {
+                        showNotification('Debes iniciar sesión para ver tus pedidos', 'error');
+                        return;
+                    }
+
+                    // Hacer una solicitud AJAX para obtener los pedidos
+                    return fetch('/api/orders/user?email=' + encodeURIComponent(userEmail))
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error al cargar los pedidos');
+                            }
+                            return response.json();
+                        });
+                })
+                .then(orders => {
+                    if (!orders || orders.length === 0) {
+                        document.getElementById('orders-table').style.display = 'none';
+                        document.getElementById('no-orders-message').style.display = 'block';
+                        document.getElementById('orders-count').textContent = '0';
+                        document.getElementById('orders-total').textContent = '$0.00';
+                        return;
+                    }
+
+                    // Mostrar la tabla y ocultar el mensaje de no pedidos
+                    document.getElementById('orders-table').style.display = 'table';
+                    document.getElementById('no-orders-message').style.display = 'none';
+
+                    // Actualizar estadísticas
+                    document.getElementById('orders-count').textContent = orders.length;
+
+                    // Calcular el total gastado
+                    const totalSpent = orders.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
+                    document.getElementById('orders-total').textContent = '$' + totalSpent.toFixed(2);
+
+                    // Limpiar la tabla
+                    const tableBody = document.getElementById('orders-table-body');
+                    tableBody.innerHTML = '';
+
+                    // Añadir cada pedido a la tabla
+                    orders.forEach(order => {
+                        const row = document.createElement('tr');
+
+                        // Formatear la fecha
+                        const date = new Date(order.created_at);
+                        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                        row.innerHTML = `
+                            <td>${order.id}</td>
+                            <td>${formattedDate}</td>
+                            <td>
+                                <span>${order.items.length} items</span>
+                                <button class="view-items-btn" data-items="${order.items.join(', ')}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
+                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action-btn view-btn" data-id="${order.id}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="table-action-btn download-btn" data-id="${order.id}">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+
+                    // Añadir event listeners a los botones de ver items
+                    document.querySelectorAll('.view-items-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const items = this.getAttribute('data-items');
+                            showItemsModal(items);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification(error.message || 'Error al cargar los pedidos', 'error');
+                });
+        }
+
+        // Función para mostrar el modal de items
+        function showItemsModal(itemsString) {
+            // Limpiar el contenedor
+            orderItems.innerHTML = '';
+
+            // Convertir la cadena de items en una lista
+            const items = itemsString.split(', ');
+
+            // Crear una lista HTML con los items
+            const itemsList = document.createElement('ul');
+            itemsList.className = 'items-list';
+
+            items.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.textContent = item;
+                itemsList.appendChild(listItem);
+            });
+
+            orderItems.appendChild(itemsList);
+
+            // Mostrar el modal
+            itemsModal.classList.add('open');
+        }
+
+        // Event listeners para cerrar el modal de items
+        itemsModalClose.addEventListener('click', () => {
+            itemsModal.classList.remove('open');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            itemsModal.classList.remove('open');
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === itemsModal) {
+                itemsModal.classList.remove('open');
+            }
+        });
+
+        // Funcionalidad de búsqueda para pedidos
+        const orderSearch = document.getElementById('orderSearch');
+        orderSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#orders-table-body tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
 
         // Función para actualizar el contador del carrito
         function updateCartCount() {
@@ -503,67 +866,72 @@
         }
 
         // Función para guardar el pedido en la base de datos
-       function saveOrder() {
-    // Primero obtener el correo del usuario logueado
-    fetch('/cards/usuario-actual')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('No se pudo obtener el usuario');
-            }
-            return response.text();
-        })
-        .then(userEmail => {
-            if (!userEmail) {
-                throw new Error('No hay usuario logueado');
-            }
+        function saveOrder() {
+            // Primero obtener el correo del usuario logueado
+            fetch('/cards/usuario-actual')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('No se pudo obtener el usuario');
+                    }
+                    return response.text();
+                })
+                .then(userEmail => {
+                    if (!userEmail) {
+                        throw new Error('No hay usuario logueado');
+                    }
 
-            // Preparar los datos del pedido
-            const items = cart.map(item => item.name);
-            const total = updateCartTotal();
+                    // Preparar los datos del pedido
+                    const items = cart.map(item => item.name);
+                    const total = updateCartTotal();
 
-            // Crear el objeto de datos para enviar al servidor
-            const orderData = {
-                user_email: userEmail,
-                items: items,
-                total_price: total
-            };
+                    // Crear el objeto de datos para enviar al servidor
+                    const orderData = {
+                        user_email: userEmail,
+                        items: items,
+                        total_price: total
+                    };
 
-            // Enviar la solicitud al servidor
-            return fetch('/api/orders/crear', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al guardar el pedido');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Mostrar notificación de éxito
-            showNotification('¡Pedido realizado con éxito!');
+                    // Enviar la solicitud al servidor
+                    return fetch('/api/orders/crear', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al guardar el pedido');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Mostrar notificación de éxito
+                    showNotification('¡Pedido realizado con éxito!');
 
-            // Limpiar el carrito
-            cart = [];
-            localStorage.removeItem('pokemonCart');
-            updateCartCount();
-            updateCartTotal();
-            renderCartItems();
-            renderCartPopupItems();
+                    // Limpiar el carrito
+                    cart = [];
+                    localStorage.removeItem('pokemonCart');
+                    updateCartCount();
+                    updateCartTotal();
+                    renderCartItems();
+                    renderCartPopupItems();
 
-            // Cerrar el modal
-            cartModal.classList.remove('open');
-            cartPopup.classList.remove('show');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification(error.message || 'Error al procesar el pedido. Inténtalo de nuevo.', 'error');
-        });
-}
+                    // Cerrar el modal
+                    cartModal.classList.remove('open');
+                    cartPopup.classList.remove('show');
+
+                    // Si estamos en la vista de pedidos, recargar los pedidos
+                    if (ordersContainer.classList.contains('active')) {
+                        loadOrders();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification(error.message || 'Error al procesar el pedido. Inténtalo de nuevo.', 'error');
+                });
+        }
 
         // Event listener para abrir/cerrar el modal del carrito
         cartButton.addEventListener('click', (e) => {
@@ -585,6 +953,9 @@
         window.addEventListener('click', (e) => {
             if (e.target === cartModal) {
                 cartModal.classList.remove('open');
+            }
+            if (e.target === itemsModal) {
+                itemsModal.classList.remove('open');
             }
             if (cartPopup.classList.contains('show') && !cartPopup.contains(e.target) && e.target !== cartButton) {
                 cartPopup.classList.remove('show');
@@ -686,6 +1057,43 @@
                 document.querySelector('.alert').style.display = 'none';
             });
         }
+
+        // Crear endpoint para obtener pedidos por usuario
+        // Esto es solo para simular la respuesta del servidor
+        // En un entorno real, este endpoint debería estar implementado en el backend
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            if (url.startsWith('/api/orders/user')) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // Simular respuesta del servidor
+                        resolve({
+                            ok: true,
+                            json: () => Promise.resolve([
+                                {
+                                    id: "550e8400-e29b-41d4-a716-446655440000",
+                                    created_at: new Date().toISOString(),
+                                    items: ["Charizard", "Pikachu", "Blastoise"],
+                                    total_price: "150.00",
+                                    user_email: "usuario@ejemplo.com"
+                                },
+                                {
+                                    id: "550e8400-e29b-41d4-a716-446655440001",
+                                    created_at: new Date(Date.now() - 86400000).toISOString(), // Ayer
+                                    items: ["Venusaur", "Mewtwo"],
+                                    total_price: "120.50",
+                                    user_email: "usuario@ejemplo.com"
+                                }
+                            ])
+                        });
+                    }, 500);
+                });
+            }
+            return originalFetch.apply(this, arguments);
+        };
+
+        // Mostrar la vista de tienda por defecto
+        showStoreView();
     });
 </script>
 </body>
