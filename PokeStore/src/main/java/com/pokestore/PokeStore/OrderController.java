@@ -1,52 +1,32 @@
 package com.pokestore.PokeStore;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/cards/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderService orderService;
+    @Autowired
+    private OrderService orderService;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+    @PostMapping("/crear")
+    public ResponseEntity<Order> createOrder(@RequestBody Map<String, Object> orderData) {
+        try {
+            String userEmail = (String) orderData.get("user_email");
+            List<String> items = (List<String>) orderData.get("items");
+            BigDecimal totalPrice = new BigDecimal(orderData.get("total_price").toString());
 
-    @PostMapping
-    public Order createOrder(@RequestBody OrderRequest request) {
-        return orderService.createOrder(request.getEmail(), request.getItems(), request.getTotal());
-    }
-
-    public static class OrderRequest {
-        private String email;
-        private List<String> items;
-        private BigDecimal total;
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public List<String> getItems() {
-            return items;
-        }
-
-        public void setItems(List<String> items) {
-            this.items = items;
-        }
-
-        public BigDecimal getTotal() {
-            return total;
-        }
-
-        public void setTotal(BigDecimal total) {
-            this.total = total;
+            Order savedOrder = orderService.createOrder(userEmail, items, totalPrice);
+            return ResponseEntity.ok(savedOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
         }
     }
 }

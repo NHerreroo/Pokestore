@@ -242,7 +242,7 @@
                         <span>Total:</span>
                         <span id="cart-total-price">$0.00</span>
                     </div>
-                    <button class="cart-checkout-btn">Checkout</button>
+                    <button id="checkout-btn" class="cart-checkout-btn">Checkout</button>
                 </div>
             </div>
         </div>
@@ -267,7 +267,7 @@
                         <span>Total:</span>
                         <span id="cart-popup-total-price">$0.00</span>
                     </div>
-                    <a href="compra.html" class="cart-popup-buy-btn">Buy Now</a>
+                    <a href="#" id="popup-checkout-btn" class="cart-popup-buy-btn">Buy Now</a>
                 </div>
             </div>
         </div>
@@ -275,192 +275,407 @@
 </div>
 
 <!-- Script para la funcionalidad del carrito y vistas -->
-<script> document.addEventListener('DOMContentLoaded', function () {
-    const cartButton = document.querySelector('.cart-button');
-    const cartModal = document.getElementById('cart-modal');
-    const cartModalClose = document.querySelector('.cart-modal-close');
-    const cartItems = document.getElementById('cart-items');
-    const cartEmpty = document.getElementById('cart-empty');
-    const cartTotalPrice = document.getElementById('cart-total-price');
-    const cartCount = document.querySelector('.cart-count');
-    const notificationContainer = document.getElementById('notification-container'); // Carrito de compras
-    let cart = [];
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Variables para el carrito
+        const cartButton = document.querySelector('.cart-button');
+        const cartModal = document.getElementById('cart-modal');
+        const cartModalClose = document.querySelector('.cart-modal-close');
+        const cartItems = document.getElementById('cart-items');
+        const cartEmpty = document.getElementById('cart-empty');
+        const cartTotalPrice = document.getElementById('cart-total-price');
+        const cartCount = document.querySelector('.cart-count');
+        const notificationContainer = document.getElementById('notification-container');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const popupCheckoutBtn = document.getElementById('popup-checkout-btn');
 
-    function updateCartCount() {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        cartCount.textContent = totalItems;
-        if (totalItems > 0) {
-            cartCount.classList.add('has-items');
-        } else {
-            cartCount.classList.remove('has-items');
-        }
-    }
+        // Variables para el popup del carrito
+        const cartPopup = document.getElementById('cart-popup');
+        const cartPopupClose = document.querySelector('.cart-popup-close');
+        const cartPopupItems = document.getElementById('cart-popup-items');
+        const cartPopupEmpty = document.getElementById('cart-popup-empty');
+        const cartPopupTotalPrice = document.getElementById('cart-popup-total-price');
 
-    function updateCartTotal() {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        cartTotalPrice.textContent = `$${total.toFixed(2)}`;
-    }
+        // Carrito de compras
+        let cart = [];
 
-    function renderCartItems() {
-        if (cart.length === 0) {
-            cartItems.style.display = 'none';
-            cartEmpty.style.display = 'flex';
-        } else {
-            cartItems.style.display = 'block';
-            cartEmpty.style.display = 'none';
-            cartItems.innerHTML = '';
-            cart.forEach((item, index) => {
-                const cartItem = document.createElement('div');
-                cartItem.className = 'cart-item';
-                cartItem.innerHTML = ` <div class="cart-item-image"> <img src="${item.image}" alt="${item.name}"> </div> <div class="cart-item-details"> <h4>${item.name}</h4> <div class="cart-item-price">$${item.price.toFixed(2)}</div> </div> <div class="cart-item-quantity"> <button class="quantity-btn minus" data-index="${index}">-</button> <span>${item.quantity}</span> <button class="quantity-btn plus" data-index="${index}">+</button> </div> <button class="cart-item-remove" data-index="${index}"> <i class="fas fa-trash"></i> </button> `;
-                cartItems.appendChild(cartItem);
-            });
-            document.querySelectorAll('.quantity-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    if (this.classList.contains('minus')) {
-                        if (cart[index].quantity > 1) {
-                            cart[index].quantity--;
-                        } else {
-                            cart.splice(index, 1);
-                        }
-                    } else if (this.classList.contains('plus')) {
-                        cart[index].quantity++;
-                    }
-                    updateCartCount();
-                    updateCartTotal();
-                    renderCartItems();
-                    localStorage.setItem('pokemonCart', JSON.stringify(cart));
-                });
-            });
-            document.querySelectorAll('.cart-item-remove').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    cart.splice(index, 1);
-                    updateCartCount();
-                    updateCartTotal();
-                    renderCartItems();
-                    localStorage.setItem('pokemonCart', JSON.stringify(cart));
-                });
-            });
-        }
-    }
-
-    cartButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        cartModal.classList.add('open');
-        renderCartItems();
-    });
-    cartModalClose.addEventListener('click', () => {
-        cartModal.classList.remove('open');
-    });
-    window.addEventListener('click', (e) => {
-        if (e.target === cartModal) {
-            cartModal.classList.remove('open');
-        }
-    });
-    document.querySelector('.cart-checkout-btn').addEventListener('click', function () {
-        window.location.href = 'compra.html';
-    });
-    document.querySelectorAll('.cart-btn').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const id = this.getAttribute('data-id');
-            const name = this.getAttribute('data-name');
-            const price = parseFloat(this.getAttribute('data-price'));
-            const image = this.getAttribute('data-image');
-            const existingItemIndex = cart.findIndex(item => item.id === id);
-            if (existingItemIndex !== -1) {
-                cart[existingItemIndex].quantity++;
-                showNotification(`Added another ${name} to your cart!`);
+        // Función para actualizar el contador del carrito
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            if (totalItems > 0) {
+                cartCount.classList.add('has-items');
             } else {
-                cart.push({id, name, price, image, quantity: 1});
-                showNotification(`${name} added to your cart!`);
+                cartCount.classList.remove('has-items');
             }
-            localStorage.setItem('pokemonCart', JSON.stringify(cart));
+        }
+
+        // Función para actualizar el total del carrito
+        function updateCartTotal() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotalPrice.textContent = `$${total.toFixed(2)}`;
+            cartPopupTotalPrice.textContent = `$${total.toFixed(2)}`;
+            return total;
+        }
+
+        // Función para renderizar los items del carrito en el modal
+        function renderCartItems() {
+            if (cart.length === 0) {
+                cartItems.style.display = 'none';
+                cartEmpty.style.display = 'flex';
+            } else {
+                cartItems.style.display = 'block';
+                cartEmpty.style.display = 'none';
+
+                // Limpiar el contenedor
+                cartItems.innerHTML = '';
+
+                // Añadir cada item
+                cart.forEach((item, index) => {
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                    <div class="cart-item-image">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <div class="cart-item-details">
+                        <h4>${item.name}</h4>
+                        <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                    </div>
+                    <div class="cart-item-quantity">
+                        <button class="quantity-btn minus" data-index="${index}">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn plus" data-index="${index}">+</button>
+                    </div>
+                    <button class="cart-item-remove" data-index="${index}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                    cartItems.appendChild(cartItem);
+                });
+
+                // Añadir event listeners a los botones de cantidad
+                document.querySelectorAll('.quantity-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        if (this.classList.contains('minus')) {
+                            if (cart[index].quantity > 1) {
+                                cart[index].quantity--;
+                            } else {
+                                cart.splice(index, 1);
+                            }
+                        } else if (this.classList.contains('plus')) {
+                            cart[index].quantity++;
+                        }
+                        updateCartCount();
+                        updateCartTotal();
+                        renderCartItems();
+                        renderCartPopupItems();
+                        // Guardar carrito en localStorage
+                        localStorage.setItem('pokemonCart', JSON.stringify(cart));
+                    });
+                });
+
+                // Añadir event listeners a los botones de eliminar
+                document.querySelectorAll('.cart-item-remove').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        cart.splice(index, 1);
+                        updateCartCount();
+                        updateCartTotal();
+                        renderCartItems();
+                        renderCartPopupItems();
+                        // Guardar carrito en localStorage
+                        localStorage.setItem('pokemonCart', JSON.stringify(cart));
+                    });
+                });
+            }
+        }
+
+        // Función para renderizar los items del carrito en el popup
+        function renderCartPopupItems() {
+            if (cart.length === 0) {
+                cartPopupItems.style.display = 'none';
+                cartPopupEmpty.style.display = 'block';
+            } else {
+                cartPopupItems.style.display = 'block';
+                cartPopupEmpty.style.display = 'none';
+
+                // Limpiar el contenedor
+                cartPopupItems.innerHTML = '';
+
+                // Añadir cada item
+                cart.forEach((item) => {
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-popup-item';
+                    cartItem.innerHTML = `
+                    <div class="cart-popup-item-image">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <div class="cart-popup-item-details">
+                        <h4>${item.name}</h4>
+                        <div class="cart-popup-item-meta">
+                            <span class="cart-popup-item-price">$${item.price.toFixed(2)}</span>
+                            <span class="cart-popup-item-quantity">x${item.quantity}</span>
+                        </div>
+                    </div>
+                `;
+                    cartPopupItems.appendChild(cartItem);
+                });
+            }
+        }
+
+        // Función para mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+
+            notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            </div>
+            <div class="notification-content">
+                <p>${message}</p>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+            notificationContainer.appendChild(notification);
+
+            // Animación de entrada
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+
+            // Auto-cerrar después de 3 segundos
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+
+            // Botón de cerrar
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            });
+        }
+
+        // Función para animar el producto añadido al carrito
+        function animateAddToCart(imageUrl, startX, startY) {
+            // Crear elemento para la animación
+            const flyingImage = document.createElement('div');
+            flyingImage.className = 'flying-image';
+            flyingImage.style.backgroundImage = `url(${imageUrl})`;
+            document.body.appendChild(flyingImage);
+
+            // Posición inicial
+            flyingImage.style.left = `${startX}px`;
+            flyingImage.style.top = `${startY}px`;
+
+            // Obtener posición del botón del carrito
+            const cartButtonRect = cartButton.getBoundingClientRect();
+            const targetX = cartButtonRect.left + (cartButtonRect.width / 2);
+            const targetY = cartButtonRect.top + (cartButtonRect.height / 2);
+
+            // Iniciar animación
+            setTimeout(() => {
+                flyingImage.style.transform = 'scale(0.3)';
+                flyingImage.style.left = `${targetX}px`;
+                flyingImage.style.top = `${targetY}px`;
+                flyingImage.style.opacity = '0';
+
+                // Eliminar elemento después de la animación
+                setTimeout(() => {
+                    flyingImage.remove();
+                    // Animar el botón del carrito
+                    cartButton.classList.add('bounce');
+                    setTimeout(() => {
+                        cartButton.classList.remove('bounce');
+                    }, 300);
+                }, 800);
+            }, 10);
+        }
+
+        // Función para guardar el pedido en la base de datos
+        function saveOrder() {
+            // Obtener el usuario actual (puedes obtenerlo de la sesión o usar uno por defecto)
+            const userEmail = "usuario@ejemplo.com"; // Reemplazar con el email del usuario actual
+
+            // Preparar los datos del pedido
+            const items = cart.map(item => item.name);
+            const total = updateCartTotal();
+
+            // Crear el objeto de datos para enviar al servidor
+            const orderData = {
+                user_email: userEmail,
+                items: items,
+                total_price: total
+            };
+
+            // Enviar la solicitud al servidor (URL corregida)
+            fetch('/api/orders/crear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al guardar el pedido');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Mostrar notificación de éxito
+                    showNotification('¡Pedido realizado con éxito!');
+
+                    // Limpiar el carrito
+                    cart = [];
+                    localStorage.removeItem('pokemonCart');
+                    updateCartCount();
+                    updateCartTotal();
+                    renderCartItems();
+                    renderCartPopupItems();
+
+                    // Cerrar el modal
+                    cartModal.classList.remove('open');
+                    cartPopup.classList.remove('show');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error al procesar el pedido. Inténtalo de nuevo.', 'error');
+                });
+        }
+
+        // Event listener para abrir/cerrar el modal del carrito
+        cartButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Mostrar el modal en lugar del popup
+            cartModal.classList.add('open');
+            renderCartItems();
+        });
+
+        cartModalClose.addEventListener('click', () => {
+            cartModal.classList.remove('open');
+        });
+
+        cartPopupClose.addEventListener('click', () => {
+            cartPopup.classList.remove('show');
+        });
+
+        // Cerrar modal y popup al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === cartModal) {
+                cartModal.classList.remove('open');
+            }
+            if (cartPopup.classList.contains('show') && !cartPopup.contains(e.target) && e.target !== cartButton) {
+                cartPopup.classList.remove('show');
+            }
+        });
+
+        // Event listener para el botón de checkout en el modal
+        checkoutBtn.addEventListener('click', function() {
+            if (cart.length === 0) {
+                showNotification('Tu carrito está vacío', 'error');
+                return;
+            }
+            saveOrder();
+        });
+
+        // Event listener para el botón de checkout en el popup
+        popupCheckoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (cart.length === 0) {
+                showNotification('Tu carrito está vacío', 'error');
+                return;
+            }
+            saveOrder();
+        });
+
+        // Event listener para los botones de añadir al carrito
+        document.querySelectorAll('.cart-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const price = parseFloat(this.getAttribute('data-price'));
+                const image = this.getAttribute('data-image');
+
+                // Comprobar si el producto ya está en el carrito
+                const existingItemIndex = cart.findIndex(item => item.id === id);
+
+                if (existingItemIndex !== -1) {
+                    // Si ya existe, incrementar la cantidad
+                    cart[existingItemIndex].quantity++;
+                    showNotification(`Added another ${name} to your cart!`);
+                } else {
+                    // Si no existe, añadir nuevo item
+                    cart.push({
+                        id,
+                        name,
+                        price,
+                        image,
+                        quantity: 1
+                    });
+                    showNotification(`${name} added to your cart!`);
+                }
+
+                // Guardar carrito en localStorage
+                localStorage.setItem('pokemonCart', JSON.stringify(cart));
+
+                // Actualizar contador y total
+                updateCartCount();
+                updateCartTotal();
+
+                // Animar el producto añadido al carrito
+                const rect = this.getBoundingClientRect();
+                animateAddToCart(image, rect.left, rect.top);
+            });
+        });
+
+        // Cargar carrito desde localStorage
+        const savedCart = localStorage.getItem('pokemonCart');
+        if (savedCart) {
+            cart = JSON.parse(savedCart);
             updateCartCount();
             updateCartTotal();
-            const rect = this.getBoundingClientRect();
-            animateAddToCart(image, rect.left, rect.top);
-        });
-    });
+        }
 
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = ` <div class="notification-icon"> <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> </div> <div class="notification-content"> <p>${message}</p> </div> <button class="notification-close"> <i class="fas fa-times"></i> </button> `;
-        notificationContainer.appendChild(notification);
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        });
-    }
+        // Cambio entre vistas de cuadrícula y lista
+        const gridViewBtn = document.querySelector('[data-view="grid"]');
+        const listViewBtn = document.querySelector('[data-view="list"]');
+        const gridView = document.getElementById('grid-view');
+        const listView = document.getElementById('list-view');
 
-    function animateAddToCart(imageUrl, startX, startY) {
-        const flyingImage = document.createElement('div');
-        flyingImage.className = 'flying-image';
-        flyingImage.style.backgroundImage = `url(${imageUrl})`;
-        document.body.appendChild(flyingImage);
-        flyingImage.style.left = `${startX}px`;
-        flyingImage.style.top = `${startY}px`;
-        const cartButtonRect = cartButton.getBoundingClientRect();
-        const targetX = cartButtonRect.left + (cartButtonRect.width / 2);
-        const targetY = cartButtonRect.top + (cartButtonRect.height / 2);
-        setTimeout(() => {
-            flyingImage.style.transform = 'scale(0.3)';
-            flyingImage.style.left = `${targetX}px`;
-            flyingImage.style.top = `${targetY}px`;
-            flyingImage.style.opacity = '0';
-            setTimeout(() => {
-                flyingImage.remove();
-                cartButton.classList.add('bounce');
-                setTimeout(() => {
-                    cartButton.classList.remove('bounce');
-                }, 300);
-            }, 800);
-        }, 10);
-    }
-
-    const savedCart = localStorage.getItem('pokemonCart');
-    if (savedCart) {
-        cart = JSON.parse(savedCart);
-        updateCartCount();
-        updateCartTotal();
-    }
-    const gridViewBtn = document.querySelector('[data-view="grid"]');
-    const listViewBtn = document.querySelector('[data-view="list"]');
-    const gridView = document.getElementById('grid-view');
-    const listView = document.getElementById('list-view');
-    gridViewBtn.addEventListener('click', function () {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-        gridViewBtn.classList.add('active');
-        listViewBtn.classList.remove('active');
-    });
-    listViewBtn.addEventListener('click', function () {
-        gridView.style.display = 'none';
-        listView.style.display = 'block';
-        listViewBtn.classList.add('active');
-        gridViewBtn.classList.remove('active');
-    });
-    const alertCloseBtn = document.querySelector('.alert-close');
-    if (alertCloseBtn) {
-        alertCloseBtn.addEventListener('click', function () {
-            document.querySelector('.alert').style.display = 'none';
+        gridViewBtn.addEventListener('click', function() {
+            gridView.style.display = 'grid';
+            listView.style.display = 'none';
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
         });
-    }
-});
+
+        listViewBtn.addEventListener('click', function() {
+            gridView.style.display = 'none';
+            listView.style.display = 'block';
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+        });
+
+        // Cerrar alertas
+        const alertCloseBtn = document.querySelector('.alert-close');
+        if (alertCloseBtn) {
+            alertCloseBtn.addEventListener('click', function() {
+                document.querySelector('.alert').style.display = 'none';
+            });
+        }
+    });
 </script>
 </body>
 </html>
