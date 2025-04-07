@@ -20,4 +20,8 @@ public class UserService {
         User user = userRepository.findByUsuario(usuario);
         return user != null && user.getContrasena().equals(contrasena);
     }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsuario(username);
+    }
 }

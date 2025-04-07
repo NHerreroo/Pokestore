@@ -88,13 +88,15 @@ public class CardController {
 
 
     @GetMapping("/usuario-actual")
+    @ResponseBody // Esto asegura que devuelva el string directamente
     public String getUsuarioActual(HttpSession session) {
         String usuario = (String) session.getAttribute("usuarioLogueado");
         if (usuario != null) {
-            return "Usuario actual: " + usuario;
-        } else {
-            return "No hay usuario logueado";
+            // Aquí deberías obtener el correo del usuario desde tu UserService
+            User user = userService.findByUsername(usuario);
+            return user != null ? user.getCorreo() : "";
         }
+        return "";
     }
 
 

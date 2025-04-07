@@ -503,9 +503,19 @@
         }
 
         // Función para guardar el pedido en la base de datos
-        function saveOrder() {
-            // Obtener el usuario actual (puedes obtenerlo de la sesión o usar uno por defecto)
-            const userEmail = "usuario@ejemplo.com"; // Reemplazar con el email del usuario actual
+       function saveOrder() {
+    // Primero obtener el correo del usuario logueado
+    fetch('/cards/usuario-actual')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('No se pudo obtener el usuario');
+            }
+            return response.text();
+        })
+        .then(userEmail => {
+            if (!userEmail) {
+                throw new Error('No hay usuario logueado');
+            }
 
             // Preparar los datos del pedido
             const items = cart.map(item => item.name);
@@ -518,41 +528,42 @@
                 total_price: total
             };
 
-            // Enviar la solicitud al servidor (URL corregida)
-            fetch('/api/orders/crear', {
+            // Enviar la solicitud al servidor
+            return fetch('/api/orders/crear', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(orderData)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al guardar el pedido');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Mostrar notificación de éxito
-                    showNotification('¡Pedido realizado con éxito!');
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al guardar el pedido');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Mostrar notificación de éxito
+            showNotification('¡Pedido realizado con éxito!');
 
-                    // Limpiar el carrito
-                    cart = [];
-                    localStorage.removeItem('pokemonCart');
-                    updateCartCount();
-                    updateCartTotal();
-                    renderCartItems();
-                    renderCartPopupItems();
+            // Limpiar el carrito
+            cart = [];
+            localStorage.removeItem('pokemonCart');
+            updateCartCount();
+            updateCartTotal();
+            renderCartItems();
+            renderCartPopupItems();
 
-                    // Cerrar el modal
-                    cartModal.classList.remove('open');
-                    cartPopup.classList.remove('show');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error al procesar el pedido. Inténtalo de nuevo.', 'error');
-                });
-        }
+            // Cerrar el modal
+            cartModal.classList.remove('open');
+            cartPopup.classList.remove('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification(error.message || 'Error al procesar el pedido. Inténtalo de nuevo.', 'error');
+        });
+}
 
         // Event listener para abrir/cerrar el modal del carrito
         cartButton.addEventListener('click', (e) => {
