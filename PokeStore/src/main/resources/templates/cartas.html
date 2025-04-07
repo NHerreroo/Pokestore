@@ -242,7 +242,7 @@
                         <span>Total:</span>
                         <span id="cart-total-price">$0.00</span>
                     </div>
-                    <button class="cart-checkout-btn">Checkout</button>
+                    <button id="checkoutBtn" class="cart-checkout-btn">Checkout</button>
                 </div>
             </div>
         </div>
@@ -345,6 +345,31 @@
             });
         }
     }
+
+    document.getElementById("checkoutBtn").addEventListener("click", function () {
+        const usuario = "usuario123"; // Puedes obtenerlo dinámicamente si tienes login
+        const productos = carrito.map(p => p.nombre); // Ajusta según tu estructura de carrito
+        const total = carrito.reduce((acc, p) => acc + p.precio, 0);
+
+        fetch("/api/pedidos/crear", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                usuario: usuario,
+                productos: productos,
+                total: total
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log("Pedido guardado:", data);
+            alert("¡Pedido realizado con éxito!");
+            // Puedes vaciar el carrito aquí
+        })
+        .catch(err => console.error("Error al guardar el pedido:", err));
+    });
 
     cartButton.addEventListener('click', (e) => {
         e.stopPropagation();
